@@ -3,8 +3,10 @@ var concat = require('concat-stream');
 
 var data = {
     isXml: false,
-    //url: 'http://jsonplaceholder.typicode.com/posts/1'
-    url: 'http://www.tcmb.gov.tr/kurlar/today.xml'
+    hostname: 'jsonplaceholder.typicode.com',
+    port: 80,
+    path: '/posts/1',
+    method: 'GET',
 };
 
 var jsonData = JSON.stringify(data);

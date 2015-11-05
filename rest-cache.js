@@ -15,9 +15,11 @@ var server = http.createServer(function (request, response) {
     }
 
     request.pipe(concat(function (data) {
-        var postData = JSON.parse(data.toString());
+        var postData = JSON.parse(data);
 
-        var service = serviceMap[postData.url];
+        var postUrl = postData.hostname + ':' + postData.port + postData.path;
+
+        var service = serviceMap[postUrl];
 
         if (service) {
             response.end(service.cache);
@@ -28,8 +30,26 @@ var server = http.createServer(function (request, response) {
 
             console.log('load cache: ' + service);
 
-            http.get(service.url, function (resp) {
-                resp.pipe(concat(function(data) {
+            var jsonData = JSON.stringify(service.data);
+
+            var options = {
+              hostname: service.hostname,
+              port: service.port,
+              path: service.path,
+              method: service.method
+            };
+
+            if (jsonData) {
+                options.headers = {
+                    'Content-Type': 'application/json',
+                    'Content-Length': jsonData.length
+                }
+            }
+
+            var clientRequest = http.request(options, function(clientResponse) {
+                clientResponse.pipe(concat(function (data) {
+                    console.log(data.toString());
+
                     if (service.isXml) {
                         xml2js.parseString(data.toString(), function (err, result) {
                             service.cache = JSON.stringify(result);
@@ -38,11 +58,16 @@ var server = http.createServer(function (request, response) {
                         service.cache = data.toString();
                     }
 
-                    serviceMap[service.url] = service;
+                    serviceMap[postUrl] = service;
 
                     response.end(service.cache);
                 }));
             });
+
+            if (jsonData)
+                clientRequest.write(jsonData);
+
+            clientRequest.end();
         }
     }));
 });

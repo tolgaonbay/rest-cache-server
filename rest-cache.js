@@ -3,49 +3,48 @@ var url = require('url');
 var concat = require('concat-stream');
 var xml2js = require('xml2js');
 
-var isXml = false;
-
 var serviceMap = {};
-
-serviceMap['/api/typicode'] = {
-    isXml: false,
-    url: 'http://jsonplaceholder.typicode.com/posts/1'
-};
-
-serviceMap['/api/tcmb'] = {
-    isXml: true,
-    url: 'http://www.tcmb.gov.tr/kurlar/today.xml'
-}
 
 var server = http.createServer(function (request, response) {
     var urlInfo = url.parse(request.url, true);
     var path = getPath(urlInfo);
 
-    var service = serviceMap[path];
-
-    if (!service) {
+    if (path != '/api/cache') {
         response.end('err');
         return;
     }
 
-    if (!service.cache) {
-        http.get(service.url, function (resp) {
-            resp.pipe(concat(function(data) {
-                if (service.isXml) {
-                    xml2js.parseString(data.toString(), function (err, result) {
-                        service.cache = JSON.stringify(result);
-                    });
-                } else {
-                    service.cache = data.toString();
-                }
-                response.end(service.cache);
-            }));
-        });
-    } else {
-        response.end(service.cache);
-        console.log('sent from cache');
-    }
+    request.pipe(concat(function (data) {
+        var postData = JSON.parse(data.toString());
 
+        var service = serviceMap[postData.url];
+
+        if (service) {
+            response.end(service.cache);
+            
+            console.log('sent from cache');
+        } else {
+            service = postData;
+
+            console.log('load cache: ' + service);
+
+            http.get(service.url, function (resp) {
+                resp.pipe(concat(function(data) {
+                    if (service.isXml) {
+                        xml2js.parseString(data.toString(), function (err, result) {
+                            service.cache = JSON.stringify(result);
+                        });
+                    } else {
+                        service.cache = data.toString();
+                    }
+
+                    serviceMap[service.url] = service;
+
+                    response.end(service.cache);
+                }));
+            });
+        }
+    }));
 });
 
 server.listen(9999); 

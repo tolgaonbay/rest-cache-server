@@ -3,7 +3,8 @@ var concat = require('concat-stream');
 
 var data = {
     isXml: false,
-    url: 'http://jsonplaceholder.typicode.com/posts/1'
+    //url: 'http://jsonplaceholder.typicode.com/posts/1'
+    url: 'http://www.tcmb.gov.tr/kurlar/today.xml'
 };
 
 var jsonData = JSON.stringify(data);
@@ -11,7 +12,7 @@ var jsonData = JSON.stringify(data);
 var options = {
   hostname: 'localhost',
   port: 9999,
-  path: '/api/typicode',
+  path: '/api/cache',
   method: 'GET',
   headers: {
     'Content-Type': 'application/json',

@@ -3,7 +3,7 @@ var url = require('url');
 var concat = require('concat-stream');
 var xml2js = require('xml2js');
 
-var serviceMap = {};
+var serviceCache = {};
 
 var server = http.createServer(function (request, response) {
     var urlInfo = url.parse(request.url, true);
@@ -19,7 +19,7 @@ var server = http.createServer(function (request, response) {
 
         var postUrl = postData.hostname + ':' + postData.port + postData.path;
 
-        var service = serviceMap[postUrl];
+        var service = serviceCache[postUrl];
 
         if (service) {
             response.end(service.cache);
@@ -58,7 +58,7 @@ var server = http.createServer(function (request, response) {
                         service.cache = data.toString();
                     }
 
-                    serviceMap[postUrl] = service;
+                    serviceCache[postUrl] = service;
 
                     response.end(service.cache);
                 }));

@@ -15,21 +15,23 @@ var server = http.createServer(function (request, response) {
     }
 
     request.pipe(concat(function (data) {
-        var serviceData = JSON.parse(data);
+        var service = JSON.parse(data);
 
-        var postUrl = getUrl(serviceData.hostname, serviceData.port, serviceData.path);
+        var key = getServiceHash(service);
 
-        var service = serviceCache[postUrl];
-
-        if (service) {
-            response.end(service.result);
+        if (serviceCache[key]) {
+            response.end(serviceCache[key].result);
             
             console.log('sent from cache');
         } else {
-            sendRequest(serviceData, function (service) {
-                serviceCache[postUrl] = service;
+            console.log('load cache: ' + service);
 
-                response.end(service.result);
+            sendRequest(service, function (result) {
+                service.result = result;
+
+                serviceCache[key] = service;
+
+                response.end(result);
             });
         }
     }));
@@ -38,8 +40,6 @@ var server = http.createServer(function (request, response) {
 server.listen(9999); 
 
 function sendRequest(service, processResult) {
-    console.log('load cache: ' + service);
-
     var options = {
       hostname: service.hostname,
       port: service.port,
@@ -60,15 +60,17 @@ function sendRequest(service, processResult) {
         clientResponse.pipe(concat(function (data) {
             console.log(data.toString());
 
+            var result;
+
             if (service.isXml) {
                 xml2js.parseString(data.toString(), function (err, result) {
-                    service.result = JSON.stringify(result);
+                    result = JSON.stringify(result);
                 });
             } else {
-                service.result = data.toString();
+                result = data.toString();
             }
 
-            processResult(service);
+            processResult(result);
         }));
     });
 
@@ -88,6 +90,6 @@ function getPath(urlInfo) {
     return urlInfo.path.substring(0, index);
 }
 
-function getUrl(hostname, port, path) {
-    return hostname + ':' + port + path;
+function getServiceHash(service) {
+    return service.hostname + ':' + service.port + service.path;
 }

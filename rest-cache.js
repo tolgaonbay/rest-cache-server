@@ -5,7 +5,9 @@ var xml2js = require('xml2js');
 
 var serviceCache = {};
 
-var server = http.createServer(function (request, response) {
+module.exports.processRequest = processRequest;
+
+function processRequest(request, response) {
     var urlInfo = url.parse(request.url, true);
     var path = getPath(urlInfo);
 
@@ -15,29 +17,32 @@ var server = http.createServer(function (request, response) {
     }
 
     request.pipe(concat(function (data) {
-        var service = JSON.parse(data);
-
-        var key = getServiceHash(service);
-
-        if (serviceCache[key]) {
-            response.end(serviceCache[key].result);
-            
-            console.log('sent from cache');
-        } else {
-            console.log('load cache: ' + service);
-
-            sendRequest(service, function (result) {
-                service.result = result;
-
-                serviceCache[key] = service;
-
-                response.end(result);
-            });
-        }
+        processData(data, function (result) {
+            response.end(result);
+        });
     }));
-});
+}
 
-server.listen(9999); 
+function processData(data, sendResult) {
+    var service = JSON.parse(data);
+
+    var key = getServiceHash(service);
+    if (serviceCache[key]) {
+        sendResult(serviceCache[key].result);
+        
+        console.log('sent from cache');
+    } else {
+        console.log('load cache: ' + service);
+
+        sendRequest(service, function (result) {
+            service.result = result;
+
+            serviceCache[key] = service;
+
+            sendResult(result);
+        });
+    }
+}
 
 function sendRequest(service, processResult) {
     var options = {
@@ -93,3 +98,4 @@ function getPath(urlInfo) {
 function getServiceHash(service) {
     return service.hostname + ':' + service.port + service.path;
 }
+

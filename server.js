@@ -1,11 +1,11 @@
 var http = require('http');
-var restcache = require('./rest-cache.js');
+var requestProcessor = require('./request-processor.js');
 
 var PORT = 9999;
 
 console.log("Starting rest cache server...");
 
-var server = http.createServer(restcache.processRequest);
+var server = http.createServer(requestProcessor.process);
 
 server.listen(PORT); 
 

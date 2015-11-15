@@ -2,12 +2,13 @@ var http = require('http');
 var url = require('url');
 var concat = require('concat-stream');
 var xml2js = require('xml2js');
+var SimpleCache = require('./simple-cache.js');
 
-var serviceCache = {};
+var cache = new SimpleCache()
 
-module.exports.processRequest = processRequest;
+module.exports.process = process;
 
-function processRequest(request, response) {
+function process(request, response) {
     var urlInfo = url.parse(request.url, true);
     var path = getPath(urlInfo);
 
@@ -27,8 +28,8 @@ function processData(data, sendResult) {
     var service = JSON.parse(data);
 
     var key = getServiceHash(service);
-    if (serviceCache[key]) {
-        sendResult(serviceCache[key].result);
+    if (cache.get(key)) {
+        sendResult(cache.get(key).result);
         
         console.log('sent from cache');
     } else {
@@ -37,7 +38,7 @@ function processData(data, sendResult) {
         sendRequest(service, function (result) {
             service.result = result;
 
-            serviceCache[key] = service;
+            cache.put(key, service);
 
             sendResult(result);
         });

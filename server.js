@@ -1,6 +1,7 @@
 var http = require('http');
-var requestProcessor = require('./request-processor.js');
+var RequestProcessor = require('./request-processor.js');
 
+var requestProcessor = new RequestProcessor();
 var PORT = 9999;
 
 console.log("Starting rest cache server...");

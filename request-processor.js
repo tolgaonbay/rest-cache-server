@@ -6,14 +6,19 @@ var SimpleCache = require('./simple-cache.js');
 
 var cache = new SimpleCache()
 
-module.exports.process = process;
+function RequestProcessor() {
 
-function process(request, response) {
+}
+
+RequestProcessor.prototype.process = function process(request, response) {
+    var requestProcessor = this;
     var urlInfo = url.parse(request.url, true);
     var path = getPath(urlInfo);
 
     if (path != '/api/cache') {
-        response.end('err');
+        response.statusCode = 404;
+        response.statusMessage = 'Not Found';
+        response.end('404 - Not Found');
         return;
     }
 
@@ -31,9 +36,9 @@ function processData(data, sendResult) {
     if (cache.get(key)) {
         sendResult(cache.get(key).result);
         
-        console.log('sent from cache');
+        console.log('Sent from cache: ' + key);
     } else {
-        console.log('load cache: ' + service);
+        console.log('Load cache: ' + key);
 
         sendRequest(service, function (result) {
             service.result = result;
@@ -64,8 +69,6 @@ function sendRequest(service, processResult) {
 
     var clientRequest = http.request(options, function(clientResponse) {
         clientResponse.pipe(concat(function (data) {
-            console.log(data.toString());
-
             var result;
 
             if (service.isXml) {
@@ -100,3 +103,4 @@ function getServiceHash(service) {
     return service.hostname + ':' + service.port + service.path;
 }
 
+module.exports = RequestProcessor;

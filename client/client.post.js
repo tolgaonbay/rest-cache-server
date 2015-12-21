@@ -2,16 +2,9 @@ var http = require('http');
 var concat = require('concat-stream');
 
 var data = {
-    isXml: false,
-    hostname: 'jsonplaceholder.typicode.com',
-    port: 80,
-    path: '/posts',
-    method: 'POST',
-    data: {
-        title: 'tolga',
-        body: 'test',
-        userId: 1403
-    }
+    title: 'tolga',
+    body: 'test',
+    userId: 1403
 };
 
 var jsonData = JSON.stringify(data);
@@ -19,7 +12,7 @@ var jsonData = JSON.stringify(data);
 var options = {
   hostname: 'localhost',
   port: 9999,
-  path: '/api/cache',
+  path: '/api/typicode/posts',
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',

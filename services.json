@@ -1,0 +1,20 @@
+{
+    "services": [
+        {
+            "hostname": "jsonplaceholder.typicode.com",
+            "port": 80,
+            "path": "/posts",
+            "method": "POST",
+            "apiPath": "/api/typicode/posts",
+            "isXml": false
+        },
+        {
+            "hostname": "jsonplaceholder.typicode.com",
+            "port": 80,
+            "path": "/posts/1",
+            "method": "GET",
+            "apiPath": "/api/typicode/posts/post",
+            "isXml": false
+        }
+    ]
+}

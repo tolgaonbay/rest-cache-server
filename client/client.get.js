@@ -1,25 +1,11 @@
 var http = require('http');
 var concat = require('concat-stream');
 
-var data = {
-    isXml: false,
-    hostname: 'jsonplaceholder.typicode.com',
-    port: 80,
-    path: '/posts/1',
-    method: 'GET',
-};
-
-var jsonData = JSON.stringify(data);
-
 var options = {
   hostname: 'localhost',
   port: 9999,
-  path: '/api/cache',
-  method: 'GET',
-  headers: {
-    'Content-Type': 'application/json',
-    'Content-Length': jsonData.length
-  }
+  path: '/api/typicode/posts/post',
+  method: 'GET'
 };
 
 var request = http.request(options, function(response) {
@@ -27,7 +13,5 @@ var request = http.request(options, function(response) {
         console.log(data.toString());
     }));
 });
-
-request.write(jsonData);
 
 request.end();

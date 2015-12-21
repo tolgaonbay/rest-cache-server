@@ -4,18 +4,22 @@ var concat = require('concat-stream');
 var xml2js = require('xml2js');
 var SimpleCache = require('./simple-cache.js');
 
-var cache = new SimpleCache()
+var serviceCache = new SimpleCache();
 
-function RequestProcessor() {
-
+function RequestProcessor(services) {
+    services.forEach(function(service) {
+        serviceCache[service.apiPath] = service;
+    });
 }
 
-RequestProcessor.prototype.process = function process(request, response) {
+RequestProcessor.prototype.process = function (request, response) {
     var requestProcessor = this;
     var urlInfo = url.parse(request.url, true);
     var path = getPath(urlInfo);
 
-    if (path != '/api/cache') {
+    var service = serviceCache[path];
+
+    if (!service) {
         response.statusCode = 404;
         response.statusMessage = 'Not Found';
         response.end('404 - Not Found');
@@ -23,34 +27,31 @@ RequestProcessor.prototype.process = function process(request, response) {
     }
 
     request.pipe(concat(function (data) {
-        processData(data, function (result) {
+        processData(service, data, function (result) {
             response.end(result);
         });
     }));
 }
 
-function processData(data, sendResult) {
-    var service = JSON.parse(data);
+function processData(service, data, sendResult) {
+    var serviceData = data && data.length > 0 ? JSON.parse(data) : null;
 
-    var key = getServiceHash(service);
-    if (cache.get(key)) {
-        sendResult(cache.get(key).result);
+    if (service.result) {
+        sendResult(service.result);
         
-        console.log('Sent from cache: ' + key);
+        console.log('Sent from cache: ' + service.apiPath);
     } else {
-        console.log('Load cache: ' + key);
+        console.log('Load cache: ' + service.apiPath);
 
-        sendRequest(service, function (result) {
+        sendRequest(service, serviceData, function (result) {
             service.result = result;
-
-            cache.put(key, service);
 
             sendResult(result);
         });
     }
 }
 
-function sendRequest(service, processResult) {
+function sendRequest(service, serviceData, processResult) {
     var options = {
       hostname: service.hostname,
       port: service.port,
@@ -58,7 +59,7 @@ function sendRequest(service, processResult) {
       method: service.method
     };
 
-    var requestContent = JSON.stringify(service.data);
+    var requestContent = serviceData ? JSON.stringify(serviceData) : null;
 
     if (requestContent) {
         options.headers = {
@@ -97,10 +98,6 @@ function getPath(urlInfo) {
     }
 
     return urlInfo.path.substring(0, index);
-}
-
-function getServiceHash(service) {
-    return service.hostname + ':' + service.port + service.path;
 }
 
 module.exports = RequestProcessor;

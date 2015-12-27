@@ -6,7 +6,8 @@
             "path": "/posts",
             "method": "POST",
             "apiPath": "/api/typicode/posts",
-            "isXml": false
+            "isXml": false,
+            "timeToLive": 1
         },
         {
             "hostname": "jsonplaceholder.typicode.com",
@@ -14,7 +15,8 @@
             "path": "/posts/1",
             "method": "GET",
             "apiPath": "/api/typicode/posts/post",
-            "isXml": false
+            "isXml": false,
+            "timeToLive": 1
         }
     ]
 }

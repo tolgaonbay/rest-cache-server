@@ -37,7 +37,7 @@ RequestProcessor.prototype.process = function (request, response) {
 function processData(service, data, sendResult) {
     var serviceData = data && data.length > 0 ? JSON.parse(data) : null;
 
-    if (service.result) {
+    if (service.result && !service.isExpired()) {
         sendResult(service.result);
         
         console.log('Sent from cache: ' + service.apiPath);
@@ -45,7 +45,7 @@ function processData(service, data, sendResult) {
         console.log('Load cache: ' + service.apiPath);
 
         sendRequest(service, serviceData, function (result) {
-            service.result = result;
+            service.updateResult(result);
 
             sendResult(result);
         });

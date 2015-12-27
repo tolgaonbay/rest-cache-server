@@ -2,13 +2,14 @@ var http = require('http');
 var url = require('url');
 var concat = require('concat-stream');
 var xml2js = require('xml2js');
+var Service = require('./service.js');
 var SimpleCache = require('./simple-cache.js');
 
 var serviceCache = new SimpleCache();
 
 function RequestProcessor(services) {
     services.forEach(function(service) {
-        serviceCache[service.apiPath] = service;
+        serviceCache[service.apiPath] = new Service(service);
     });
 }
 

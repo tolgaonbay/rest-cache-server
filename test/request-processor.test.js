@@ -5,7 +5,13 @@ var RequestProcessor = require('../request-processor');
 describe('request-processor', function () {
     describe('#process()', function () {
        it('should return error if the request path is not valid', function () {
-            var requestProcessor = new RequestProcessor();
+            var services = [
+                {
+                    "apiPath": "/api/typicode/posts"
+                }
+            ]
+
+            var requestProcessor = new RequestProcessor(services);
 
             var request = {
                 url : "http://localhost:9000/api/"
